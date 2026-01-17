@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 public class ClickEvent {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private LocalDateTime clickDate;
+    private Long id; // Unique ID for each click event
+    private LocalDateTime clickDate; // Date and time when the click occurred
 
     @ManyToOne
     @JoinColumn(name = "url_mapping_id")
-    private UrlMapping urlMapping;
+    private UrlMapping urlMapping; // Link to the associated UrlMapping
 }

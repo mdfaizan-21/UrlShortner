@@ -11,16 +11,16 @@ import java.util.List;
 public class UrlMapping {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String originalUrl;
-    private String shortUrl;
-    private int clickCount = 0;
-    private LocalDateTime createdDate;
+    private Long id; // Unique ID for this URL mapping
+    private String originalUrl; // The long URL provided by the user
+    private String shortUrl; // The generated short URL
+    private int clickCount = 0; // Number of times the short URL has been clicked
+    private LocalDateTime createdDate; // When this mapping was created
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private User user; // The user who created this mapping
 
     @OneToMany(mappedBy = "urlMapping")
-    private List<ClickEvent> clickEvents;
+    private List<ClickEvent> clickEvents; // List of click events for this mapping
 }
