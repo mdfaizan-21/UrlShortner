@@ -16,7 +16,8 @@ import java.util.Collections;
 /**
  * THINK OF THIS CLASS AS A "PASSPORT".
  * * In your database, you have a 'User' (like a person's birth certificate).
- * But Spring Security is like an Airport Guard—it doesn't recognize your birth certificate;
+ * But Spring Security is like an Airport Guard—it doesn't recognize your birth
+ * certificate;
  * it only recognizes a "Passport" (the UserDetails interface).
  * * This class takes your database information and puts it into the "Passport"
  * format so Spring Security can read it.
@@ -32,8 +33,10 @@ public class UserDetailsImpl implements UserDetails {
     private String username;
     private String password;
     /**
-     * Authorities are the permissions or roles granted to the user (e.g., ROLE_USER, ROLE_ADMIN).
-     * These are checked by Spring Security to authorize access to specific endpoints.
+     * Authorities are the permissions or roles granted to the user (e.g.,
+     * ROLE_USER, ROLE_ADMIN).
+     * These are checked by Spring Security to authorize access to specific
+     * endpoints.
      */
     private Collection<? extends GrantedAuthority> authorities;
 
@@ -58,8 +61,8 @@ public class UserDetailsImpl implements UserDetails {
         GrantedAuthority authority = new SimpleGrantedAuthority(user.getRole());
         return new UserDetailsImpl(
                 user.getId(),
-                user.getUsername(),
                 user.getEmail(),
+                user.getUsername(),
                 user.getPassword(),
                 Collections.singletonList(authority) // User has only one role in this case
         );
