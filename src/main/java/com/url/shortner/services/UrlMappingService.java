@@ -120,4 +120,20 @@ public class UrlMappingService {
                         Collectors.counting()                        // Aggregate count
                 ));
     }
+
+    public UrlMapping getOriginalUrl(String shortUrl) {
+        UrlMapping urlMapping=urlMappingRepository.findByShortUrl(shortUrl);
+        if(urlMapping!=null){
+            //update the click count for this short url
+            urlMapping.setClickCount(urlMapping.getClickCount()+1);
+            urlMappingRepository.save(urlMapping);
+
+            //Record the click event
+            ClickEvent clickEvent=new ClickEvent();
+            clickEvent.setClickDate(LocalDateTime.now());
+            clickEvent.setUrlMapping(urlMapping);
+            clickEventRepository.save(clickEvent);
+        }
+        return urlMapping;
+    }
 }
