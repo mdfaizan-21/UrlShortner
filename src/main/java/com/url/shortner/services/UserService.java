@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -60,5 +61,11 @@ public class UserService {
 
         // Step 5: Wrap token in DTO for client response
         return new JwtAuthenticationResponse(jwt);
+    }
+
+    public User getByUsername(String name) {
+        return userRepository.findByUsername(name).orElseThrow(
+                ()->new UsernameNotFoundException("User with this username:- "+name+" not found in database")
+        );
     }
 }
