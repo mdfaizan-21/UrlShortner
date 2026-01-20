@@ -1,8 +1,10 @@
 package com.url.shortner.services;
 
+import com.url.shortner.dtos.ClickEventDTO;
 import com.url.shortner.dtos.UrlMappingDTO;
 import com.url.shortner.models.UrlMapping;
 import com.url.shortner.models.User;
+import com.url.shortner.repository.ClickEventRepository;
 import com.url.shortner.repository.UrlMappingRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,12 +13,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class UrlMappingService {
 
     private UrlMappingRepository urlMappingRepository;
+    private ClickEventRepository clickEventRepository;
 
     public UrlMappingDTO convertToShortUrl(String originalUrl, User user) {
         String shortUrl=generateUrl();
@@ -57,5 +61,39 @@ public class UrlMappingService {
             urlMappingDTOS.add(convertToDTO(urlMapping));
         }
         return urlMappingDTOS;
+    }
+
+    public List<ClickEventDTO> getClickEventsByDate(String shortUrl, LocalDateTime start, LocalDateTime end) {
+        // 1. Look up the metadata for the short URL (to get its primary key/ID)
+        UrlMapping urlMapping = urlMappingRepository.findByShortUrl(shortUrl);
+
+        if (urlMapping != null) {
+            // 2. Fetch all individual click records from the DB for this specific URL within the date range
+            // Note: This returns a List<ClickEvent>, where each object is a single click.
+            return clickEventRepository.findByUrlMappingAndClickDateBetween(urlMapping, start, end)
+                    .stream() // Convert list to a Stream for processing
+
+                    // 3. Grouping Logic:
+                    // Takes ClickEvent::getClickDate (LocalDateTime) -> converts to LocalDate (Year-Month-Day)
+                    // Collectors.counting() counts how many clicks exist for each unique LocalDate
+                    .collect(Collectors.groupingBy(
+                            clickEvent -> clickEvent.getClickDate().toLocalDate(),
+                            Collectors.counting()
+                    ))
+
+                    // 4. Mapping Logic:
+                    // Convert the resulting Map<LocalDate, Long> back into a List of DTOs
+                    .entrySet().stream()
+                    .map(entry -> {
+                        ClickEventDTO clickEventDTO = new ClickEventDTO();
+                        clickEventDTO.setClickDate(entry.getKey()); // The Date (e.g., 2023-10-27)
+                        clickEventDTO.setCount(entry.getValue());   // The Total Clicks for that date
+                        return clickEventDTO;
+                    })
+                    .collect(Collectors.toList()); // Terminal operation to return the final List
+        }
+
+        // Returns null if the shortUrl doesn't exist in the database
+        return null;
     }
 }
