@@ -2,6 +2,7 @@ package com.url.shortner.services;
 
 import com.url.shortner.dtos.ClickEventDTO;
 import com.url.shortner.dtos.UrlMappingDTO;
+import com.url.shortner.models.ClickEvent;
 import com.url.shortner.models.UrlMapping;
 import com.url.shortner.models.User;
 import com.url.shortner.repository.ClickEventRepository;
@@ -9,9 +10,11 @@ import com.url.shortner.repository.UrlMappingRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -95,5 +98,26 @@ public class UrlMappingService {
 
         // Returns null if the shortUrl doesn't exist in the database
         return null;
+    }
+
+    public Map<LocalDate, Long> getTotalClicksByUserAndDate(User user, LocalDate start, LocalDate end) {
+        // 1. Fetch all UrlMapping objects created by this specific user
+        List<UrlMapping> urlMappings = urlMappingRepository.findByUser(user);
+
+        // 2. Query the ClickEvent table for any click associated with the list of URLs above.
+        // .atStartOfDay() converts LocalDate to 00:00:00 time
+        // .plusDays(1) ensures the end date is inclusive of the entire final day
+        List<ClickEvent> clickEvents = clickEventRepository.findByUrlMappingInAndClickDateBetween(
+                urlMappings,
+                start.atStartOfDay(),
+                end.plusDays(1).atStartOfDay()
+        );
+
+        // 3. Flatten all clicks into a single stream and group by date
+        return clickEvents.stream()
+                .collect(Collectors.groupingBy(
+                        click -> click.getClickDate().toLocalDate(), // Strip time to group by Day
+                        Collectors.counting()                        // Aggregate count
+                ));
     }
 }
